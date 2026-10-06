@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Регистрация</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tg: {
+                            bg: 'var(--tg-theme-bg-color, #ffffff)',
+                            text: 'var(--tg-theme-text-color, #000000)',
+                            hint: 'var(--tg-theme-hint-color, #999999)',
+                            link: 'var(--tg-theme-link-color, #2481cc)',
+                            button: 'var(--tg-theme-button-color, #2481cc)',
+                            buttonText: 'var(--tg-theme-button-text-color, #ffffff)',
+                            secondaryBg: 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
+                            error: '#ef4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        .tg-input {
+            width: 100%;
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #000000);
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .tg-input:focus {
+            border-color: var(--tg-theme-button-color, #2481cc);
+        }
+
+        .tg-input.error {
+            border-color: var(--tg-theme-destructive-text-color, #ef4444);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Анимации плавного появления */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .role-card {
+            border: 2px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            transition: all 0.2s ease;
+        }
+        
+        .role-card.selected {
+            border-color: var(--tg-theme-button-color, #2481cc);
+            background-color: rgba(36, 129, 204, 0.1);
+        }
+
+        .student-block {
+            border-left: 3px solid var(--tg-theme-button-color, #2481cc);
+        }
+    </style>
+</head>
+<body class="p-4 pb-24">
+
+    <div id="app-container" class="max-w-md mx-auto space-y-6">
+        
+        <!-- Шаг 1: Выбор роли -->
+        <div id="step-role" class="space-y-4">
+            <h2 class="text-xl font-bold text-center">Кем вы являетесь?</h2>
+            
+            <div class="grid grid-cols-1 gap-3">
+                <button type="button" onclick="selectRole('parent')" id="role-parent" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-3xl">👨‍👧</span>
+                        <span class="font-semibold">Я родитель ученика</span>
+                    </div>
+                    <div id="check-parent" class="hidden text-tg-button text-2xl">✓</div>
+                </button>
+                
+                <button type="button" onclick="selectRole('adult')" id="role-adult" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-3xl">🧑‍🎓</span>
+                        <span class="font-semibold">Я взрослый ученик</span>
+                    </div>
+                    <div id="check-adult" class="hidden text-tg-button text-2xl">✓</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Шаг 2: Форма сбора данных -->
+        <div id="step-form" class="hidden space-y-6 fade-in">
+            <h2 class="text-xl font-bold border-b border-gray-200 pb-2">Ваши контакты</h2>
+            
+            <!-- Общие поля -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-tg-hint">ФИО полностью <span class="text-tg-error">*</span></label>
+                    <input type="text" id="full_name" class="tg-input" placeholder="Иванов Иван Иванович">
+                    <p id="err-full_name" class="text-xs text-tg-error mt-1 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-tg-hint">Номер телефона <span class="text-tg-error">*</span></label>
+                    <input type="tel" id="phone" class="tg-input" placeholder="+7 (999) 123-45-67">
+                    <p id="err-phone" class="text-xs text-tg-error mt-1 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-tg-hint">Email адрес <span class="text-tg-error">*</span></label>
+                    <input type="email" id="email" class="tg-input" placeholder="example@mail.ru" autocapitalize="none">
+                    <p id="err-email" class="text-xs text-tg-error mt-1 hidden"></p>
+                </div>
+            </div>
+
+            <!-- Поля для взрослого ученика -->
+            <div id="adult-fields" class="hidden space-y-4 pt-4 border-t border-gray-200">
+                <h2 class="text-xl font-bold pb-2">Дополнительно</h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-tg-hint">Возраст <span class="text-tg-error">*</span></label>
+                        <input type="number" id="adult_age" class="tg-input" placeholder="25" min="14" max="100">
+                        <p id="err-adult_age" class="text-xs text-tg-error mt-1 hidden"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1 text-tg-hint">Никнейм в Zoom <span class="text-tg-error">*</span></label>
+                    <input type="text" id="adult_zoom" class="tg-input" placeholder="IvanIvanov">
+                    <p id="err-adult_zoom" class="text-xs text-tg-error mt-1 hidden"></p>
+                </div>
+            </div>
+
+            <!-- Блок с детьми для родителя -->
+            <div id="parent-fields" class="hidden space-y-4 pt-4 border-t border-gray-200">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                    <h2 class="text-xl font-bold">Данные учеников</h2>
+                    <span class="text-xs font-semibold bg-tg-secondaryBg px-2 py-1 rounded-full" id="student-count-badge">0/10</span>
+                </div>
+                
+                <div id="students-container" class="space-y-4">
+                    <!-- Сюда динамически добавляются дети -->
+                </div>
+
+                <button type="button" onclick="addStudent()" id="add-student-btn" class="w-full py-3 rounded-xl border-2 border-dashed border-tg-button text-tg-button font-semibold hover:bg-tg-secondaryBg transition-colors">
+                    + Добавить ученика
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        
+        // Состояние приложения
+        let state = {
+            userType: null,
+            students: [] // Массив объектов { id, name, age, zoom }
+        };
+
+        // Подготовка интерфейса
+        tg.ready();
+        tg.expand();
+        tg.MainButton.text = "ОТПРАВИТЬ ДАННЫЕ";
+        tg.MainButton.color = tg.themeParams.button_color || '#2481cc';
+        tg.MainButton.textColor = tg.themeParams.button_text_color || '#ffffff';
+
+        // Привязываем обработчик к главной кнопке
+        tg.MainButton.onClick(submitData);
+
+        // Регулярные выражения
+        const regexName = /^[А-ЯЁа-яё\s\-]+$/;
+        const regexEmail = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+        const regexPhone = /^\+?\d{10,15}$/; // Упрощенная проверка, чистится от пробелов и скобок
+
+        function selectRole(role) {
+            state.userType = role;
+            
+            // Обновляем визуальное выделение карточек
+            document.getElementById('role-parent').classList.remove('selected');
+            document.getElementById('role-adult').classList.remove('selected');
+            document.getElementById('check-parent').classList.add('hidden');
+            document.getElementById('check-adult').classList.add('hidden');
+
+            document.getElementById(`role-${role}`).classList.add('selected');
+            document.getElementById(`check-${role}`).classList.remove('hidden');
+
+            // Показываем форму с плавным появлением
+            const form = document.getElementById('step-form');
+            form.classList.remove('hidden');
+
+            // Показываем/скрываем нужные поля
+            if (role === 'adult') {
+                document.getElementById('adult-fields').classList.remove('hidden');
+                document.getElementById('parent-fields').classList.add('hidden');
+                // Сбрасываем детей, если переключились на взрослого
+                state.students = []; 
+                renderStudents();
+            } else {
+                document.getElementById('adult-fields').classList.add('hidden');
+                document.getElementById('parent-fields').classList.remove('hidden');
+                // Если детей еще нет — добавляем первого по умолчанию
+                if (state.students.length === 0) {
+                    addStudent();
+                }
+            }
+
+            validateForm(); // Проверяем форму при переключении
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
+
+        function addStudent() {
+            if (state.students.length >= 10) {
+                tg.showAlert("Можно добавить максимум 10 учеников.");
+                return;
+            }
+
+            state.students.push({
+                id: generateId(),
+                name: '',
+                age: '',
+                zoom: ''
+            });
+            renderStudents();
+            validateForm();
+        }
+
+        function removeStudent(id) {
+            state.students = state.students.filter(s => s.id !== id);
+            renderStudents();
+            validateForm();
+        }
+
+        function updateStudentData(id, field, value) {
+            const student = state.students.find(s => s.id === id);
+            if (student) {
+                student[field] = value;
+                validateForm();
+            }
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('students-container');
+            const badge = document.getElementById('student-count-badge');
+            
+            // Защита от XSS: Очищаем контейнер безопасно
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            badge.textContent = `${state.students.length}/10`;
+            
+            if (state.students.length >= 10) {
+                document.getElementById('add-student-btn').classList.add('hidden');
+            } else {
+                document.getElementById('add-student-btn').classList.remove('hidden');
+            }
+
+            state.students.forEach((student, index) => {
+                // Создаем элементы через DOM API для безопасности (без innerHTML с данными пользователя)
+                const block = document.createElement('div');
+                block.className = 'student-block bg-tg-secondaryBg p-4 rounded-xl space-y-3 relative fade-in';
+                
+                // Заголовок и кнопка удаления
+                const header = document.createElement('div');
+                header.className = 'flex justify-between items-center font-bold text-sm text-tg-hint';
+                
+                const title = document.createElement('span');
+                title.textContent = `Ученик #${index + 1}`;
+                header.appendChild(title);
+
+                if (state.students.length > 1) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'text-tg-error p-1';
+                    delBtn.innerHTML = '✕'; // Безопасно, константа
+                    delBtn.onclick = () => removeStudent(student.id);
+                    header.appendChild(delBtn);
+                }
+                block.appendChild(header);
+
+                // Поле: Имя ребенка
+                const nameWrapper = document.createElement('div');
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'tg-input text-sm';
+                nameInput.placeholder = 'Имя (например, Иван)';
+                nameInput.value = student.name;
+                nameInput.oninput = (e) => updateStudentData(student.id, 'name', e.target.value);
+                nameWrapper.appendChild(nameInput);
+                
+                const nameErr = document.createElement('p');
+                nameErr.id = `err-std-name-${student.id}`;
+                nameErr.className = 'text-xs text-tg-error mt-1 hidden';
+                nameWrapper.appendChild(nameErr);
+                block.appendChild(nameWrapper);
+
+                // Нижний ряд: Возраст и Zoom
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-3 gap-2';
+
+                // Поле: Возраст
+                const ageWrapper = document.createElement('div');
+                const ageInput = document.createElement('input');
+                ageInput.type = 'number';
+                ageInput.className = 'tg-input text-sm col-span-1';
+                ageInput.placeholder = 'Возраст';
+                ageInput.min = '3';
+                ageInput.max = '100';
+                ageInput.value = student.age;
+                ageInput.oninput = (e) => updateStudentData(student.id, 'age', e.target.value);
+                ageWrapper.appendChild(ageInput);
+
+                const ageErr = document.createElement('p');
+                ageErr.id = `err-std-age-${student.id}`;
+                ageErr.className = 'text-xs text-tg-error mt-1 hidden';
+                ageWrapper.appendChild(ageErr);
+                grid.appendChild(ageWrapper);
+
+                // Поле: Zoom
+                const zoomWrapper = document.createElement('div');
+                zoomWrapper.className = 'col-span-2';
+                const zoomInput = document.createElement('input');
+                zoomInput.type = 'text';
+                zoomInput.className = 'tg-input text-sm w-full';
+                zoomInput.placeholder = 'Ник в Zoom';
+                zoomInput.value = student.zoom;
+                zoomInput.oninput = (e) => updateStudentData(student.id, 'zoom', e.target.value);
+                zoomWrapper.appendChild(zoomInput);
+
+                const zoomErr = document.createElement('p');
+                zoomErr.id = `err-std-zoom-${student.id}`;
+                zoomErr.className = 'text-xs text-tg-error mt-1 hidden';
+                zoomWrapper.appendChild(zoomErr);
+                grid.appendChild(zoomWrapper);
+
+                block.appendChild(grid);
+                container.appendChild(block);
+            });
+        }
+
+        function showError(elementId, message) {
+            const errEl = document.getElementById(`err-${elementId}`);
+            const inputEl = document.getElementById(elementId) || document.querySelector(`[id^='${elementId}']`);
+            if (errEl) {
+                errEl.textContent = message;
+                errEl.classList.remove('hidden');
+            }
+            if (inputEl) {
+                inputEl.classList.add('error');
+            }
+        }
+
+        function hideError(elementId) {
+            const errEl = document.getElementById(`err-${elementId}`);
+            const inputEl = document.getElementById(elementId) || document.querySelector(`[id^='${elementId}']`);
+            if (errEl) {
+                errEl.classList.add('hidden');
+            }
+            if (inputEl) {
+                inputEl.classList.remove('error');
+            }
+        }
+
+        function validateField(id, val, rules) {
+            hideError(id);
+            for (let rule of rules) {
+                if (!rule.check(val)) {
+                    showError(id, rule.msg);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function validateForm() {
+            if (!state.userType) {
+                tg.MainButton.hide();
+                return false;
+            }
+
+            let isValid = true;
+
+            // Валидация общих полей
+            const fn = document.getElementById('full_name').value.trim();
+            isValid = validateField('full_name', fn, [
+                { check: v => v.length > 0, msg: "Обязательное поле" },
+                { check: v => v.length <= 100, msg: "Слишком длинное ФИО" },
+                { check: v => regexName.test(v), msg: "Только русские буквы" },
+                { check: v => v.split(/\s+/).length >= 2, msg: "Введите Фамилию и Имя" }
+            ]) && isValid;
+
+            const ph = document.getElementById('phone').value.trim();
+            const cleanPh = ph.replace(/[\s\-\(\)]/g, '');
+            isValid = validateField('phone', cleanPh, [
+                { check: v => v.length > 0, msg: "Обязательное поле" },
+                { check: v => regexPhone.test(v), msg: "Некорректный номер" }
+            ]) && isValid;
+
+            const em = document.getElementById('email').value.trim();
+            isValid = validateField('email', em, [
+                { check: v => v.length > 0, msg: "Обязательное поле" },
+                { check: v => regexEmail.test(v), msg: "Некорректный email" }
+            ]) && isValid;
+
+            // Валидация в зависимости от роли
+            if (state.userType === 'adult') {
+                const age = document.getElementById('adult_age').value.trim();
+                isValid = validateField('adult_age', age, [
+                    { check: v => v !== "", msg: "Укажите возраст" },
+                    { check: v => !isNaN(v) && parseInt(v) >= 14, msg: "Мин. возраст 14" },
+                    { check: v => parseInt(v) <= 100, msg: "Макс. возраст 100" }
+                ]) && isValid;
+
+                const zm = document.getElementById('adult_zoom').value.trim();
+                isValid = validateField('adult_zoom', zm, [
+                    { check: v => v.length > 0, msg: "Укажите никнейм" },
+                    { check: v => v.length <= 80, msg: "Слишком длинный" }
+                ]) && isValid;
+            } else {
+                if (state.students.length === 0) isValid = false;
+
+                state.students.forEach(std => {
+                    const idName = `std-name-${std.id}`;
+                    isValid = validateField(idName, std.name.trim(), [
+                        { check: v => v.length > 0, msg: "Введите имя" },
+                        { check: v => v.length <= 100, msg: "Слишком длинное" },
+                        { check: v => regexName.test(v), msg: "Только русские буквы" }
+                    ]) && isValid;
+
+                    const idAge = `std-age-${std.id}`;
+                    isValid = validateField(idAge, std.age, [
+                        { check: v => v !== "", msg: "Возраст?" },
+                        { check: v => !isNaN(v) && parseInt(v) >= 3, msg: "Мин. 3" },
+                        { check: v => parseInt(v) <= 100, msg: "Макс. 100" }
+                    ]) && isValid;
+
+                    const idZoom = `std-zoom-${std.id}`;
+                    isValid = validateField(idZoom, std.zoom.trim(), [
+                        { check: v => v.length > 0, msg: "Укажите Zoom" },
+                        { check: v => v.length <= 80, msg: "Длинный ник" }
+                    ]) && isValid;
+                });
+            }
+
+            // Управляем кнопкой отправки
+            if (isValid) {
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+
+            return isValid;
+        }
+
+        // Привязываем валидацию к вводу
+        ['full_name', 'phone', 'email', 'adult_age', 'adult_zoom'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', validateForm);
+            }
+        });
+
+        function submitData() {
+            if (!validateForm()) {
+                tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+
+            // Формируем JSON объект, в точности ожидаемый бекендом _validate_webapp_data
+            const payload = {
+                user_type: state.userType,
+                full_name: document.getElementById('full_name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim()
+            };
+
+            if (state.userType === 'adult') {
+                payload.age = parseInt(document.getElementById('adult_age').value.trim(), 10);
+                payload.zoom = document.getElementById('adult_zoom').value.trim();
+            } else {
+                payload.students = state.students.map(s => ({
+                    name: s.name.trim(),
+                    age: parseInt(s.age, 10),
+                    zoom: s.zoom.trim()
+                }));
+            }
+
+            // Вибрация успеха и отправка данных в бот
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.sendData(JSON.stringify(payload));
+        }
+
+    </script>
+</body>
+</html>
