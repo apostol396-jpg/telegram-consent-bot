@@ -2,14 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- Обязательный мета-тег для запрета масштабирования формы на смартфонах -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Регистрация ученика</title>
+    
     <!-- Подключаем Telegram WebApp API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Подключаем Tailwind CSS для быстрого и красивого дизайна -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Настройка темы Telegram -->
     <script>
         tailwind.config = {
             theme: {
@@ -32,28 +33,35 @@
     </script>
     
     <style>
-        /* Базовые стили для интеграции с Telegram */
         body {
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
-            padding-bottom: 80px; /* Отступ для главной кнопки Telegram */
+            padding-bottom: 90px; /* Отступ для главной кнопки Telegram */
+            /* Отключаем выделение текста, чтобы кнопки не синели при тапе на iOS */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
-        /* Стили инпутов */
+        /* Поля ввода должны быть выделяемыми */
+        input {
+            user-select: auto;
+        }
+        
         .tg-input {
             width: 100%;
             background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
             color: var(--tg-theme-text-color, #000000);
             border: 2px solid transparent;
             border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
+            padding: 0.85rem 1rem; /* Чуть увеличил padding для удобства пальцев */
             font-size: 1rem;
             transition: all 0.2s ease;
             outline: none;
             box-sizing: border-box;
+            -webkit-appearance: none; /* Убираем стандартные стили iOS */
         }
 
         .tg-input:focus {
@@ -65,11 +73,11 @@
             background-color: rgba(239, 68, 68, 0.1);
         }
 
-        /* Карточки выбора роли */
         .role-card {
             border: 2px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             cursor: pointer;
+            touch-action: manipulation; /* Улучшает отклик на тачскрине */
         }
         
         .role-card.selected {
@@ -77,7 +85,6 @@
             background-color: rgba(36, 129, 204, 0.1);
         }
 
-        /* Анимации плавного появления */
         .fade-in {
             animation: fadeIn 0.3s ease-in-out forwards;
         }
@@ -94,27 +101,27 @@
 </head>
 <body class="p-4">
 
-    <!-- Главный контейнер -->
     <div id="app-container" class="max-w-md mx-auto space-y-6">
         
         <div id="step-role" class="space-y-4">
             <h2 class="text-xl font-bold text-center">Кем вы являетесь?</h2>
             
             <div class="grid grid-cols-1 gap-3">
-                <button type="button" onclick="selectRole('parent')" id="role-parent" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg">
-                    <div class="flex items-center space-x-4">
+                <!-- active:scale-95 дает красивый эффект "прожатия" кнопки при касании -->
+                <button type="button" id="btn-role-parent" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg active:scale-95">
+                    <div class="flex items-center space-x-4 pointer-events-none">
                         <span class="text-3xl">👨‍👧</span>
-                        <span class="font-semibold">Я родитель ученика</span>
+                        <span class="font-semibold text-lg">Я родитель ученика</span>
                     </div>
-                    <div id="check-parent" class="hidden text-tg-button text-2xl">✓</div>
+                    <div id="check-parent" class="hidden text-tg-button text-2xl pointer-events-none">✓</div>
                 </button>
                 
-                <button type="button" onclick="selectRole('adult')" id="role-adult" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg">
-                    <div class="flex items-center space-x-4">
-                        <span class="text-3xl">🧑‍🎓</span>
-                        <span class="font-semibold">Я взрослый ученик</span>
+                <button type="button" id="btn-role-adult" class="role-card p-4 rounded-xl flex items-center justify-between text-left w-full bg-tg-secondaryBg active:scale-95">
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <span class="text-3xl">🧑‍‍🎓</span>
+                        <span class="font-semibold text-lg">Я взрослый ученик</span>
                     </div>
-                    <div id="check-adult" class="hidden text-tg-button text-2xl">✓</div>
+                    <div id="check-adult" class="hidden text-tg-button text-2xl pointer-events-none">✓</div>
                 </button>
             </div>
         </div>
@@ -125,51 +132,51 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-1 text-tg-hint">Ваше ФИО полностью <span class="text-tg-error">*</span></label>
-                    <input type="text" id="full_name" class="tg-input" placeholder="Иванов Иван Иванович">
+                    <input type="text" id="full_name" class="tg-input" placeholder="Иванов Иван Иванович" autocomplete="name">
                     <p id="err-full_name" class="text-xs text-tg-error mt-1 hidden"></p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1 text-tg-hint">Номер телефона <span class="text-tg-error">*</span></label>
-                    <input type="tel" id="phone" class="tg-input" placeholder="+7 (999) 123-45-67">
+                    <input type="tel" id="phone" class="tg-input" placeholder="+7 (999) 123-45-67" autocomplete="tel">
                     <p id="err-phone" class="text-xs text-tg-error mt-1 hidden"></p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1 text-tg-hint">Email адрес <span class="text-tg-error">*</span></label>
-                    <input type="email" id="email" class="tg-input" placeholder="example@mail.ru" autocapitalize="none">
+                    <input type="email" id="email" class="tg-input" placeholder="example@mail.ru" autocomplete="email" autocapitalize="none">
                     <p id="err-email" class="text-xs text-tg-error mt-1 hidden"></p>
                 </div>
             </div>
 
-            <div id="adult-fields" class="hidden space-y-4 pt-4 border-t border-gray-200">
+            <div id="adult-fields" class="hidden space-y-4 pt-4 border-t border-gray-200 fade-in">
                 <h2 class="text-xl font-bold pb-2">Дополнительно</h2>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-1 text-tg-hint">Ваш возраст <span class="text-tg-error">*</span></label>
-                        <input type="number" id="adult_age" class="tg-input" placeholder="25" min="14" max="100">
+                        <!-- type="tel" лучше открывает цифровую клавиатуру на iOS -->
+                        <input type="tel" id="adult_age" class="tg-input" placeholder="25">
                         <p id="err-adult_age" class="text-xs text-tg-error mt-1 hidden"></p>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1 text-tg-hint">Никнейм в Zoom <span class="text-tg-error">*</span></label>
-                    <input type="text" id="adult_zoom" class="tg-input" placeholder="IvanIvanov">
+                    <input type="text" id="adult_zoom" class="tg-input" placeholder="IvanIvanov" autocapitalize="none">
                     <p id="err-adult_zoom" class="text-xs text-tg-error mt-1 hidden"></p>
                 </div>
             </div>
 
-            <div id="parent-fields" class="hidden space-y-4 pt-4 border-t border-gray-200">
+            <div id="parent-fields" class="hidden space-y-4 pt-4 border-t border-gray-200 fade-in">
                 <div class="flex justify-between items-center pb-2 border-b border-gray-200">
                     <h2 class="text-xl font-bold">Данные учеников</h2>
                     <span class="text-xs font-semibold bg-tg-secondaryBg px-2 py-1 rounded-full" id="student-count-badge">0/10</span>
                 </div>
                 
-                <!-- Контейнер для динамического добавления учеников -->
                 <div id="students-container" class="space-y-4"></div>
 
-                <button type="button" onclick="addStudent()" id="add-student-btn" class="w-full py-3 rounded-xl border-2 border-dashed border-tg-button text-tg-button font-semibold hover:bg-tg-secondaryBg transition-colors">
+                <button type="button" id="add-student-btn" class="w-full py-4 rounded-xl border-2 border-dashed border-tg-button text-tg-button font-semibold hover:bg-tg-secondaryBg active:scale-95 transition-all">
                     + Добавить ученика
                 </button>
             </div>
@@ -177,25 +184,30 @@
     </div>
 
     <script>
+        // Глобальный перехватчик ошибок (выведет окно в Telegram, если JS упадет)
+        window.addEventListener('error', function(e) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert("Ошибка устройства: " + e.message);
+            }
+        });
+
         const tg = window.Telegram.WebApp;
         
-        // Глобальное состояние
         let state = {
             userType: null,
-            students: [] // массив с учениками
+            students: []
         };
 
-        // Инициализация Telegram Mini App
+        // Запуск приложения
         tg.ready();
-        tg.expand();
+        tg.expand(); // Открываем на всю высоту
+        
+        // Настройка главной кнопки
         tg.MainButton.text = "ОТПРАВИТЬ ДАННЫЕ";
         tg.MainButton.color = tg.themeParams.button_color || '#2481cc';
         tg.MainButton.textColor = tg.themeParams.button_text_color || '#ffffff';
-
-        // Отправка данных при нажатии главной кнопки
         tg.MainButton.onClick(submitData);
 
-        // Регулярные выражения для валидации (аналогичные Python-бэкенду)
         const regexName = /^[А-ЯЁа-яё\s\-]+$/;
         const regexEmail = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
         const regexPhone = /^\+?\d{10,15}$/;
@@ -203,16 +215,16 @@
         function selectRole(role) {
             state.userType = role;
             
-            // Визуальное выделение карточки
-            document.getElementById('role-parent').classList.remove('selected');
-            document.getElementById('role-adult').classList.remove('selected');
+            // Сбрасываем выделение
+            document.getElementById('btn-role-parent').classList.remove('selected');
+            document.getElementById('btn-role-adult').classList.remove('selected');
             document.getElementById('check-parent').classList.add('hidden');
             document.getElementById('check-adult').classList.add('hidden');
 
-            document.getElementById(`role-${role}`).classList.add('selected');
+            // Активируем нужную кнопку
+            document.getElementById(`btn-role-${role}`).classList.add('selected');
             document.getElementById(`check-${role}`).classList.remove('hidden');
 
-            // Показ нужной части формы
             document.getElementById('step-form').classList.remove('hidden');
 
             if (role === 'adult') {
@@ -224,15 +236,25 @@
                 document.getElementById('adult-fields').classList.add('hidden');
                 document.getElementById('parent-fields').classList.remove('hidden');
                 if (state.students.length === 0) {
-                    addStudent(); // Сразу добавляем одного ученика для удобства
+                    addStudent();
                 }
             }
+            
+            // Прокручиваем форму немного вниз для удобства
+            setTimeout(() => {
+                document.getElementById('step-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            
             validateForm();
         }
 
-        // Генерация случайного ID для учеников
+        // Привязываем клики по кнопкам надежным методом
+        document.getElementById('btn-role-parent').addEventListener('click', () => selectRole('parent'));
+        document.getElementById('btn-role-adult').addEventListener('click', () => selectRole('adult'));
+        document.getElementById('add-student-btn').addEventListener('click', addStudent);
+
         function generateId() {
-            return Math.random().toString(36).substr(2, 9);
+            return Math.random().toString(36).substring(2, 9);
         }
 
         function addStudent() {
@@ -259,12 +281,11 @@
             }
         }
 
-        // Отрисовка списка учеников (безопасным методом createElement для предотвращения XSS)
+        // Отрисовка списка (защищена от XSS)
         function renderStudents() {
             const container = document.getElementById('students-container');
             const badge = document.getElementById('student-count-badge');
             
-            // Очищаем контейнер
             container.innerHTML = '';
             badge.textContent = `${state.students.length}/10`;
             
@@ -274,27 +295,27 @@
                 const block = document.createElement('div');
                 block.className = 'student-block bg-tg-secondaryBg p-4 rounded-xl space-y-3 relative fade-in';
                 
-                // Заголовок карточки ученика
                 const header = document.createElement('div');
                 header.className = 'flex justify-between items-center font-bold text-sm text-tg-hint';
                 header.innerHTML = `<span>Ученик #${index + 1}</span>`;
 
                 if (state.students.length > 1) {
                     const delBtn = document.createElement('button');
-                    delBtn.className = 'text-tg-error p-1';
-                    delBtn.textContent = '✕';
+                    delBtn.className = 'text-tg-error p-2 active:scale-90 touch-manipulation';
+                    delBtn.innerHTML = '✕';
                     delBtn.onclick = () => removeStudent(student.id);
                     header.appendChild(delBtn);
                 }
                 block.appendChild(header);
 
-                // Имя
+                // Поле Имя
                 const nameWrapper = document.createElement('div');
                 const nameInput = document.createElement('input');
                 nameInput.type = 'text';
                 nameInput.className = 'tg-input text-sm';
                 nameInput.placeholder = 'Имя (например, Иван)';
                 nameInput.value = student.name;
+                nameInput.autocomplete = 'off';
                 nameInput.oninput = (e) => updateStudentData(student.id, 'name', e.target.value);
                 nameWrapper.appendChild(nameInput);
                 const nameErr = document.createElement('p');
@@ -303,15 +324,15 @@
                 nameWrapper.appendChild(nameErr);
                 block.appendChild(nameWrapper);
 
-                // Возраст и Zoom
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-3 gap-2';
 
+                // Поле Возраст
                 const ageWrapper = document.createElement('div');
                 const ageInput = document.createElement('input');
-                ageInput.type = 'number';
+                ageInput.type = 'tel'; // Для цифр на iOS
                 ageInput.className = 'tg-input text-sm col-span-1';
-                ageInput.placeholder = 'Возраст';
+                ageInput.placeholder = 'Лет';
                 ageInput.value = student.age;
                 ageInput.oninput = (e) => updateStudentData(student.id, 'age', e.target.value);
                 ageWrapper.appendChild(ageInput);
@@ -321,6 +342,7 @@
                 ageWrapper.appendChild(ageErr);
                 grid.appendChild(ageWrapper);
 
+                // Поле Zoom
                 const zoomWrapper = document.createElement('div');
                 zoomWrapper.className = 'col-span-2';
                 const zoomInput = document.createElement('input');
@@ -328,6 +350,7 @@
                 zoomInput.className = 'tg-input text-sm w-full';
                 zoomInput.placeholder = 'Ник в Zoom';
                 zoomInput.value = student.zoom;
+                zoomInput.autocapitalize = 'none';
                 zoomInput.oninput = (e) => updateStudentData(student.id, 'zoom', e.target.value);
                 zoomWrapper.appendChild(zoomInput);
                 const zoomErr = document.createElement('p');
@@ -374,12 +397,11 @@
 
             let isValid = true;
 
-            // Общие поля
             const fn = document.getElementById('full_name').value.trim();
             isValid = validateField('full_name', fn, [
                 { check: v => v.length > 0, msg: "Обязательное поле" },
                 { check: v => regexName.test(v), msg: "Только русские буквы" },
-                { check: v => v.split(/\s+/).length >= 2, msg: "Укажите Фамилию и Имя" }
+                { check: v => v.split(/\s+/).length >= 2, msg: "Минимум 2 слова" }
             ]) && isValid;
 
             const ph = document.getElementById('phone').value.trim();
@@ -395,12 +417,11 @@
                 { check: v => regexEmail.test(v), msg: "Некорректный email" }
             ]) && isValid;
 
-            // Поля взрослого
             if (state.userType === 'adult') {
                 const age = document.getElementById('adult_age').value.trim();
                 isValid = validateField('adult_age', age, [
                     { check: v => v !== "", msg: "Обязательно" },
-                    { check: v => parseInt(v) >= 14, msg: "Минимум 14 лет" }
+                    { check: v => parseInt(v) >= 14 && parseInt(v) <= 100, msg: "От 14 до 100 лет" }
                 ]) && isValid;
 
                 const zm = document.getElementById('adult_zoom').value.trim();
@@ -408,7 +429,6 @@
                     { check: v => v.length > 0, msg: "Обязательное поле" }
                 ]) && isValid;
             } 
-            // Поля родителя (дети)
             else {
                 if (state.students.length === 0) isValid = false;
 
@@ -420,7 +440,7 @@
 
                     isValid = validateField(`std-age-${std.id}`, std.age, [
                         { check: v => v !== "", msg: "Обязательно" },
-                        { check: v => parseInt(v) >= 3, msg: "Мин. 3 года" }
+                        { check: v => parseInt(v) >= 3 && parseInt(v) <= 100, msg: "От 3 до 100 лет" }
                     ]) && isValid;
 
                     isValid = validateField(`std-zoom-${std.id}`, std.zoom.trim(), [
@@ -429,7 +449,6 @@
                 });
             }
 
-            // Кнопка отправки появляется только если всё правильно заполнено
             if (isValid) {
                 tg.MainButton.show();
             } else {
@@ -439,7 +458,6 @@
             return isValid;
         }
 
-        // Привязываем валидацию к вводу с клавиатуры
         ['full_name', 'phone', 'email', 'adult_age', 'adult_zoom'].forEach(id => {
             document.getElementById(id).addEventListener('input', validateForm);
         });
@@ -450,7 +468,6 @@
                 return;
             }
 
-            // Формируем JSON структуру в точности так, как ожидает python-код (_validate_webapp_data)
             const payload = {
                 user_type: state.userType,
                 full_name: document.getElementById('full_name').value.trim(),
@@ -469,11 +486,10 @@
                 }));
             }
 
-            // Вибрация успеха и закрытие WebApp с отправкой данных боту
             tg.HapticFeedback.notificationOccurred('success');
+            // Передаем JSON-строку в бота
             tg.sendData(JSON.stringify(payload));
         }
-
     </script>
 </body>
 </html>
